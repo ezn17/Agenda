@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Agenda">
+<meta name="theme-color" content="#0f0f0f">
+<title>Mi Agenda Semanal</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f0f0f;
+  --surface: #1a1a1a;
+  --surface2: #222;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.14);
+  --text: #f0f0f0;
+  --muted: #888;
+  --accent: #6C63FF;
+  --accent2: #9B94FF;
+  --work: #1a2a3a;
+  --work-acc: #4a9eff;
+  --gym: #1a2e1a;
+  --gym-acc: #4ade80;
+  --study: #1e1a2e;
+  --study-acc: #a78bfa;
+  --meal: #2e1e1a;
+  --meal-acc: #fb923c;
+  --free: #1e2416;
+  --free-acc: #a3e635;
+  --rest: #1e1e1e;
+  --rest-acc: #666;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; overscroll-behavior: none; }
+
+/* HEADER */
+.app-header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(15,15,15,0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 0.5px solid var(--border);
+  padding: 14px 16px 10px;
+}
+.header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.app-title { font-family: 'Space Grotesk', sans-serif; font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
+.week-nav { display: flex; align-items: center; gap: 8px; }
+.nav-btn {
+  background: var(--surface); border: 0.5px solid var(--border2);
+  border-radius: 20px; padding: 5px 12px; font-size: 12px;
+  color: var(--muted); cursor: pointer; font-family: 'DM Sans', sans-serif;
+  transition: all 0.15s;
+}
+.nav-btn:active { transform: scale(0.95); background: var(--surface2); }
+.week-label { font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+/* STATS BAR */
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 10px 16px; }
+.stat-card { background: var(--surface); border-radius: var(--radius-sm); padding: 8px 6px; text-align: center; border: 0.5px solid var(--border); }
+.stat-val { font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600; color: var(--text); }
+.stat-val.accent { color: var(--accent2); }
+.stat-lbl { font-size: 9px; color: var(--muted); margin-top: 1px; text-transform: uppercase; letter-spacing: 0.05em; }
+.progress-track { height: 2px; background: var(--border); margin: 0 16px 4px; border-radius: 2px; }
+.progress-fill { height: 2px; border-radius: 2px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.4s ease; }
+
+/* LEGEND */
+.legend { display: flex; gap: 6px; flex-wrap: wrap; padding: 4px 16px 10px; }
+.leg { font-size: 10px; padding: 3px 8px; border-radius: 20px; font-weight: 500; }
+
+/* DAYS SCROLL */
+.days-scroll { overflow-x: auto; padding: 0 16px 16px; display: flex; gap: 10px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.days-scroll::-webkit-scrollbar { display: none; }
+
+.day-card {
+  flex: 0 0 200px; scroll-snap-align: start;
+  background: var(--surface); border: 0.5px solid var(--border);
+  border-radius: var(--radius); padding: 12px; min-height: 480px;
+  transition: border-color 0.2s;
+}
+.day-card.today { border-color: var(--accent); border-width: 1.5px; }
+.day-card.rest-day { background: var(--surface2); }
+
+.day-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.day-name { font-family: 'Space Grotesk', sans-serif; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+.day-name.today { color: var(--accent2); }
+.day-date-num { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 600; color: var(--text); line-height: 1; }
+.today-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+
+/* BLOCKS */
+.block { border-radius: var(--radius-sm); padding: 7px 9px; margin-bottom: 5px; border-left: 2px solid; }
+.block-label { font-size: 11px; font-weight: 500; margin-bottom: 1px; }
+.block-time { font-size: 9px; opacity: 0.7; }
+.b-work { background: var(--work); border-color: var(--work-acc); color: var(--work-acc); }
+.b-gym { background: var(--gym); border-color: var(--gym-acc); color: var(--gym-acc); }
+.b-study { background: var(--study); border-color: var(--study-acc); color: var(--study-acc); }
+.b-meal { background: var(--meal); border-color: var(--meal-acc); color: var(--meal-acc); }
+.b-free { background: var(--free); border-color: var(--free-acc); color: var(--free-acc); }
+.b-rest { background: var(--rest); border-color: var(--rest-acc); color: var(--rest-acc); }
+
+/* TASKS */
+.tasks-section { margin-top: 8px; padding-top: 8px; border-top: 0.5px solid var(--border); }
+.task-row { display: flex; align-items: flex-start; gap: 8px; padding: 5px 0; cursor: pointer; border-radius: 6px; transition: background 0.1s; }
+.task-row:active { background: var(--surface2); }
+.task-check {
+  width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid var(--border2);
+  background: transparent; flex-shrink: 0; margin-top: 1px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; cursor: pointer;
+}
+.task-check.checked { background: var(--accent); border-color: var(--accent); }
+.task-check.checked::after { content: '✓'; font-size: 11px; color: white; font-weight: 600; }
+.task-text { font-size: 11px; color: var(--text); line-height: 1.4; transition: color 0.15s; }
+.task-text.done { text-decoration: line-through; color: var(--muted); }
+
+/* DAY PROGRESS */
+.day-progress { height: 2px; background: var(--border); border-radius: 2px; margin-top: 10px; }
+.day-progress-fill { height: 2px; border-radius: 2px; background: var(--accent); transition: width 0.3s; }
+
+/* RESET BTN */
+.reset-wrap { text-align: center; padding: 4px 16px 20px; }
+.reset-btn { font-size: 11px; color: var(--muted); background: none; border: 0.5px solid var(--border); border-radius: 20px; padding: 5px 14px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+.reset-btn:active { background: var(--surface2); }
+
+/* INSTALL BANNER */
+.install-banner {
+  display: none; position: fixed; bottom: 20px; left: 16px; right: 16px;
+  background: var(--surface); border: 1px solid var(--accent);
+  border-radius: var(--radius); padding: 12px 16px;
+  box-shadow: 0 8px 32px rgba(108,99,255,0.3);
+  z-index: 200; align-items: center; gap: 12px;
+}
+.install-banner.show { display: flex; }
+.install-text { flex: 1; font-size: 13px; color: var(--text); }
+.install-text span { font-size: 11px; color: var(--muted); display: block; margin-top: 2px; }
+.install-btn { background: var(--accent); color: white; border: none; border-radius: 8px; padding: 7px 14px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif; white-space: nowrap; }
+.install-close { background: none; border: none; color: var(--muted); font-size: 18px; cursor: pointer; padding: 0 4px; line-height: 1; }
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div class="header-top">
+    <div class="app-title">Mi Agenda ⚡</div>
+    <div class="week-nav">
+      <button class="nav-btn" onclick="changeWeek(-1)">←</button>
+      <span class="week-label" id="week-label"></span>
+      <button class="nav-btn" onclick="changeWeek(1)">→</button>
+    </div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-val accent" id="s-done">0</div><div class="stat-lbl">Hechas</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-pend">0</div><div class="stat-lbl">Pendientes</div></div>
+    <div class="stat-card"><div class="stat-val accent" id="s-pct">0%</div><div class="stat-lbl">Adherencia</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-streak">0d</div><div class="stat-lbl">Racha</div></div>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="global-bar" style="width:0%"></div></div>
+</div>
+
+<div class="legend">
+  <span class="leg" style="background:var(--work);color:var(--work-acc)">Trabajo</span>
+  <span class="leg" style="background:var(--gym);color:var(--gym-acc)">Gym</span>
+  <span class="leg" style="background:var(--study);color:var(--study-acc)">Estudio</span>
+  <span class="leg" style="background:var(--meal);color:var(--meal-acc)">Meal prep</span>
+  <span class="leg" style="background:var(--free);color:var(--free-acc)">Libre</span>
+</div>
+
+<div class="days-scroll" id="days-scroll"></div>
+
+<div class="reset-wrap">
+  <button class="reset-btn" onclick="resetWeek()">Reiniciar semana</button>
+</div>
+
+<div class="install-banner" id="install-banner">
+  <div class="install-text">Instala la app en tu cel <span>Funciona sin internet</span></div>
+  <button class="install-btn" id="install-btn">Instalar</button>
+  <button class="install-close" onclick="closeBanner()">×</button>
+</div>
+
+<script>
+const DAYS = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+const DAYS_FULL = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+
+const DAY_CONFIG = [
+  { type:'long', blocks:[
+    {cls:'b-work',label:'Trabajo',time:'9:00 AM – 7:00 PM'},
+    {cls:'b-gym',label:'Gym',time:'7:00 – 9:30 PM'},
+    {cls:'b-study',label:'Estudio',time:'9:30 – 10:30 PM'},
+  ], tasks:['habito_cel','habito_plan','study30','finanza_dia'] },
+  { type:'long', blocks:[
+    {cls:'b-work',label:'Trabajo',time:'9:00 AM – 7:00 PM'},
+    {cls:'b-gym',label:'Gym',time:'7:00 – 9:30 PM'},
+    {cls:'b-study',label:'Estudio',time:'9:30 – 10:30 PM'},
+  ], tasks:['habito_cel','habito_plan','study30','finanza_dia'] },
+  { type:'rest', blocks:[
+    {cls:'b-meal',label:'Meal prep (1ª mitad)',time:'9:00 – 11:00 AM'},
+    {cls:'b-study',label:'Estudio profundo',time:'11:30 AM – 1:30 PM'},
+    {cls:'b-gym',label:'Gym',time:'4:00 – 6:00 PM'},
+    {cls:'b-free',label:'Libre / descanso',time:'6:00 PM en adelante'},
+  ], tasks:['meal_prep','study90','python_prac','habito_cel','habito_plan','finanza_dia'] },
+  { type:'long', blocks:[
+    {cls:'b-work',label:'Trabajo',time:'9:00 AM – 7:00 PM'},
+    {cls:'b-gym',label:'Gym',time:'7:00 – 9:30 PM'},
+    {cls:'b-study',label:'Estudio',time:'9:30 – 10:30 PM'},
+  ], tasks:['habito_cel','habito_plan','study30','finanza_dia'] },
+  { type:'short', blocks:[
+    {cls:'b-work',label:'Trabajo',time:'9:00 AM – 6:00 PM'},
+    {cls:'b-gym',label:'Gym',time:'6:00 – 8:00 PM'},
+    {cls:'b-study',label:'Estudio',time:'8:00 – 9:00 PM'},
+    {cls:'b-free',label:'Libre',time:'9:00 – 10:30 PM'},
+  ], tasks:['habito_cel','habito_plan','study45','finanza_dia','cv_update'] },
+  { type:'short', blocks:[
+    {cls:'b-work',label:'Trabajo',time:'9:00 AM – 6:00 PM'},
+    {cls:'b-study',label:'Estudio',time:'6:30 – 7:30 PM'},
+    {cls:'b-free',label:'Libre / descanso activo',time:'7:30 PM en adelante'},
+  ], tasks:['habito_cel','habito_plan','study45','finanza_dia'] },
+  { type:'rest', blocks:[
+    {cls:'b-meal',label:'Meal prep (2ª mitad)',time:'9:00 – 11:00 AM'},
+    {cls:'b-gym',label:'Gym',time:'11:30 AM – 1:30 PM'},
+    {cls:'b-study',label:'Estudio / revisión',time:'2:30 – 4:00 PM'},
+    {cls:'b-free',label:'Revisión semanal + descanso',time:'4:00 PM en adelante'},
+  ], tasks:['meal_prep','study90','review_week','finanza_sem','habito_cel','habito_plan'] },
+];
+
+const TASK_DEF = {
+  habito_cel:   'Sin cel en primera hora del día',
+  habito_plan:  'Planea tu día (5 min)',
+  study30:      'Estudia 30 min — repaso / ejercicios',
+  study45:      'Estudia 45 min — Python / curso',
+  study90:      'Estudia 90 min — tema nuevo o práctica',
+  python_prac:  'Ejercicio práctico de Python',
+  finanza_dia:  'Registra gastos del día',
+  finanza_sem:  'Cierre semanal de finanzas',
+  cv_update:    'Actualiza CV o LinkedIn (15 min)',
+  review_week:  'Revisa adherencia y ajusta metas',
+  meal_prep:    'Meal prep completado ✓',
+};
+
+let weekOffset = 0;
+let checks = {};
+
+function getWeekDates(o) {
+  const now = new Date(), day = now.getDay();
+  const mon = new Date(now);
+  mon.setDate(now.getDate() - (day === 0 ? 6 : day - 1) + o * 7);
+  return Array.from({length:7}, (_, i) => { const d = new Date(mon); d.setDate(mon.getDate()+i); return d; });
+}
+function dateKey(d) { return d.toISOString().slice(0,10); }
+
+function render() {
+  const dates = getWeekDates(weekOffset);
+  const todayStr = dateKey(new Date());
+  const fmt = d => `${d.getDate()}/${d.getMonth()+1}`;
+  document.getElementById('week-label').textContent = `${fmt(dates[0])} – ${fmt(dates[6])}`;
+
+  const scroll = document.getElementById('days-scroll');
+  scroll.innerHTML = '';
+  let total = 0, done = 0;
+
+  dates.forEach((date, idx) => {
+    const dk = dateKey(date);
+    const cfg = DAY_CONFIG[idx];
+    const isToday = dk === todayStr;
+
+    const card = document.createElement('div');
+    card.className = 'day-card' + (isToday ? ' today' : '') + (cfg.type === 'rest' ? ' rest-day' : '');
+
+    const head = document.createElement('div');
+    head.className = 'day-head';
+    head.innerHTML = `
+      <div>
+        <div class="day-name${isToday ? ' today' : ''}">${DAYS[idx]}</div>
+        <div class="day-date-num">${date.getDate()}</div>
+      </div>
+      ${isToday ? '<div class="today-dot"></div>' : ''}
+    `;
+    card.appendChild(head);
+
+    cfg.blocks.forEach(b => {
+      const bl = document.createElement('div');
+      bl.className = `block ${b.cls}`;
+      bl.innerHTML = `<div class="block-label">${b.label}</div><div class="block-time">${b.time}</div>`;
+      card.appendChild(bl);
+    });
+
+    const ts = document.createElement('div');
+    ts.className = 'tasks-section';
+    let dayDone = 0;
+
+    cfg.tasks.forEach(tid => {
+      const key = `${dk}__${tid}`;
+      const checked = !!checks[key];
+      total++; if(checked){done++;dayDone++;}
+
+      const row = document.createElement('div');
+      row.className = 'task-row';
+      row.innerHTML = `
+        <div class="task-check${checked ? ' checked' : ''}" data-key="${key}"></div>
+        <div class="task-text${checked ? ' done' : ''}">${TASK_DEF[tid]}</div>
+      `;
+      row.addEventListener('click', () => {
+        checks[key] = !checks[key];
+        save(); render();
+      });
+      ts.appendChild(row);
+    });
+
+    const dp = document.createElement('div');
+    dp.className = 'day-progress';
+    const pct = cfg.tasks.length ? Math.round(dayDone/cfg.tasks.length*100) : 0;
+    dp.innerHTML = `<div class="day-progress-fill" style="width:${pct}%"></div>`;
+    ts.appendChild(dp);
+    card.appendChild(ts);
+    scroll.appendChild(card);
+
+    if (isToday) {
+      setTimeout(() => card.scrollIntoView({behavior:'smooth', block:'nearest', inline:'center'}), 100);
+    }
+  });
+
+  document.getElementById('s-done').textContent = done;
+  document.getElementById('s-pend').textContent = total - done;
+  const pct = total ? Math.round(done/total*100) : 0;
+  document.getElementById('s-pct').textContent = pct + '%';
+  document.getElementById('global-bar').style.width = pct + '%';
+  document.getElementById('s-streak').textContent = calcStreak() + 'd';
+}
+
+function calcStreak() {
+  let s = 0;
+  const today = new Date();
+  for (let i = 0; i < 60; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const idx = d.getDay() === 0 ? 6 : d.getDay() - 1;
+    const dk = dateKey(d);
+    if (DAY_CONFIG[idx].tasks.some(tid => checks[`${dk}__${tid}`])) s++;
+    else if (i > 0) break;
+  }
+  return s;
+}
+
+function save() { try { localStorage.setItem('erick_agenda_pwa', JSON.stringify(checks)); } catch(e){} }
+function load() { try { const s = localStorage.getItem('erick_agenda_pwa'); if(s) checks = JSON.parse(s); } catch(e){} }
+function changeWeek(d) { weekOffset += d; render(); }
+function resetWeek() {
+  if (!confirm('¿Reiniciar checks de esta semana?')) return;
+  getWeekDates(weekOffset).forEach((date, idx) => {
+    const dk = dateKey(date);
+    DAY_CONFIG[idx].tasks.forEach(tid => { delete checks[`${dk}__${tid}`]; });
+  });
+  save(); render();
+}
+
+// PWA install
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('install-banner').classList.add('show');
+});
+document.getElementById('install-btn').addEventListener('click', async () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') closeBanner();
+    deferredPrompt = null;
+  }
+});
+function closeBanner() { document.getElementById('install-banner').classList.remove('show'); }
+
+// Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+load();
+render();
+</script>
+</body>
+</html>
