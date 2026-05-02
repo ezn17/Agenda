@@ -22,6 +22,7 @@
   --muted: #888;
   --accent: #6C63FF;
   --accent2: #9B94FF;
+  --danger: #ef4444;
   --work: #1a2a3a;
   --work-acc: #4a9eff;
   --gym: #1a2e1a;
@@ -49,16 +50,25 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
   border-bottom: 0.5px solid var(--border);
   padding: 14px 16px 10px;
 }
-.header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; gap: 8px; }
 .app-title { font-family: 'Space Grotesk', sans-serif; font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
-.week-nav { display: flex; align-items: center; gap: 8px; }
+.header-actions { display: flex; align-items: center; gap: 6px; }
+.week-nav { display: flex; align-items: center; gap: 6px; }
 .nav-btn {
   background: var(--surface); border: 0.5px solid var(--border2);
-  border-radius: 20px; padding: 5px 12px; font-size: 12px;
+  border-radius: 20px; padding: 5px 10px; font-size: 12px;
   color: var(--muted); cursor: pointer; font-family: 'DM Sans', sans-serif;
   transition: all 0.15s;
 }
 .nav-btn:active { transform: scale(0.95); background: var(--surface2); }
+.icon-btn {
+  background: var(--surface); border: 0.5px solid var(--border2);
+  border-radius: 50%; width: 30px; height: 30px;
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--muted); font-size: 14px; transition: all 0.15s;
+}
+.icon-btn:active { transform: scale(0.92); background: var(--surface2); }
+.icon-btn.active { color: var(--accent2); border-color: var(--accent); background: rgba(108,99,255,0.12); }
 .week-label { font-size: 12px; color: var(--muted); white-space: nowrap; }
 
 /* STATS BAR */
@@ -70,6 +80,13 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .progress-track { height: 2px; background: var(--border); margin: 0 16px 4px; border-radius: 2px; }
 .progress-fill { height: 2px; border-radius: 2px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.4s ease; }
 
+/* EDIT MODE INDICATOR */
+.edit-banner {
+  display: none; padding: 6px 16px; background: rgba(108,99,255,0.12);
+  border-bottom: 0.5px solid var(--accent); font-size: 11px; color: var(--accent2); text-align: center;
+}
+body.edit-mode .edit-banner { display: block; }
+
 /* LEGEND */
 .legend { display: flex; gap: 6px; flex-wrap: wrap; padding: 4px 16px 10px; }
 .leg { font-size: 10px; padding: 3px 8px; border-radius: 20px; font-weight: 500; }
@@ -79,10 +96,10 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .days-scroll::-webkit-scrollbar { display: none; }
 
 .day-card {
-  flex: 0 0 200px; scroll-snap-align: start;
+  flex: 0 0 220px; scroll-snap-align: start;
   background: var(--surface); border: 0.5px solid var(--border);
   border-radius: var(--radius); padding: 12px; min-height: 480px;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s; display: flex; flex-direction: column;
 }
 .day-card.today { border-color: var(--accent); border-width: 1.5px; }
 .day-card.rest-day { background: var(--surface2); }
@@ -92,9 +109,16 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .day-name.today { color: var(--accent2); }
 .day-date-num { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 600; color: var(--text); line-height: 1; }
 .today-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+.day-reset {
+  display: none; font-size: 10px; color: var(--muted); cursor: pointer;
+  border: 0.5px solid var(--border2); border-radius: 12px; padding: 2px 8px;
+  background: transparent;
+}
+body.edit-mode .day-reset { display: inline-block; }
 
 /* BLOCKS */
-.block { border-radius: var(--radius-sm); padding: 7px 9px; margin-bottom: 5px; border-left: 2px solid; }
+.block-wrap { position: relative; margin-bottom: 5px; }
+.block { border-radius: var(--radius-sm); padding: 7px 9px; border-left: 2px solid; cursor: default; }
 .block-label { font-size: 11px; font-weight: 500; margin-bottom: 1px; }
 .block-time { font-size: 9px; opacity: 0.7; }
 .b-work { background: var(--work); border-color: var(--work-acc); color: var(--work-acc); }
@@ -103,10 +127,30 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .b-meal { background: var(--meal); border-color: var(--meal-acc); color: var(--meal-acc); }
 .b-free { background: var(--free); border-color: var(--free-acc); color: var(--free-acc); }
 .b-rest { background: var(--rest); border-color: var(--rest-acc); color: var(--rest-acc); }
+body.edit-mode .block { cursor: pointer; }
+body.edit-mode .block::after {
+  content: '✎'; position: absolute; top: 4px; right: 6px;
+  font-size: 10px; opacity: 0.6;
+}
+.block-del {
+  display: none; position: absolute; top: -6px; right: -6px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--danger); color: white; font-size: 11px;
+  border: none; cursor: pointer; line-height: 1;
+}
+body.edit-mode .block-del { display: flex; align-items: center; justify-content: center; }
+.add-btn {
+  display: none; width: 100%; padding: 6px; margin-top: 4px;
+  background: transparent; border: 0.5px dashed var(--border2);
+  border-radius: var(--radius-sm); color: var(--muted);
+  font-size: 11px; cursor: pointer; font-family: 'DM Sans', sans-serif;
+}
+body.edit-mode .add-btn { display: block; }
+.add-btn:active { background: var(--surface2); }
 
 /* TASKS */
 .tasks-section { margin-top: 8px; padding-top: 8px; border-top: 0.5px solid var(--border); }
-.task-row { display: flex; align-items: flex-start; gap: 8px; padding: 5px 0; cursor: pointer; border-radius: 6px; transition: background 0.1s; }
+.task-row { display: flex; align-items: flex-start; gap: 8px; padding: 5px 0; cursor: pointer; border-radius: 6px; transition: background 0.1s; position: relative; }
 .task-row:active { background: var(--surface2); }
 .task-check {
   width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid var(--border2);
@@ -116,15 +160,38 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 }
 .task-check.checked { background: var(--accent); border-color: var(--accent); }
 .task-check.checked::after { content: '✓'; font-size: 11px; color: white; font-weight: 600; }
-.task-text { font-size: 11px; color: var(--text); line-height: 1.4; transition: color 0.15s; }
+.task-text { font-size: 11px; color: var(--text); line-height: 1.4; transition: color 0.15s; flex: 1; }
 .task-text.done { text-decoration: line-through; color: var(--muted); }
+.task-del {
+  display: none; background: none; border: none; color: var(--danger);
+  font-size: 14px; cursor: pointer; padding: 0 4px; line-height: 1;
+}
+body.edit-mode .task-del { display: inline-block; }
+body.edit-mode .task-row { cursor: pointer; }
 
 /* DAY PROGRESS */
 .day-progress { height: 2px; background: var(--border); border-radius: 2px; margin-top: 10px; }
 .day-progress-fill { height: 2px; border-radius: 2px; background: var(--accent); transition: width 0.3s; }
 
+/* LOGRO */
+.logro-section { margin-top: 10px; padding-top: 8px; border-top: 0.5px solid var(--border); }
+.logro-label {
+  font-size: 9px; color: var(--muted); text-transform: uppercase;
+  letter-spacing: 0.08em; margin-bottom: 4px; display: flex; justify-content: space-between;
+}
+.logro-input {
+  width: 100%; min-height: 38px; resize: vertical;
+  background: var(--surface2); border: 0.5px solid var(--border);
+  border-radius: var(--radius-sm); padding: 6px 8px;
+  color: var(--text); font-size: 11px; font-family: 'DM Sans', sans-serif;
+  line-height: 1.4;
+}
+.logro-input:focus { outline: none; border-color: var(--accent); }
+.logro-input::placeholder { color: var(--muted); font-style: italic; }
+.logro-saved { font-size: 9px; color: var(--gym-acc); }
+
 /* RESET BTN */
-.reset-wrap { text-align: center; padding: 4px 16px 20px; }
+.reset-wrap { text-align: center; padding: 4px 16px 20px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
 .reset-btn { font-size: 11px; color: var(--muted); background: none; border: 0.5px solid var(--border); border-radius: 20px; padding: 5px 14px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
 .reset-btn:active { background: var(--surface2); }
 
@@ -141,6 +208,59 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .install-text span { font-size: 11px; color: var(--muted); display: block; margin-top: 2px; }
 .install-btn { background: var(--accent); color: white; border: none; border-radius: 8px; padding: 7px 14px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif; white-space: nowrap; }
 .install-close { background: none; border: none; color: var(--muted); font-size: 18px; cursor: pointer; padding: 0 4px; line-height: 1; }
+
+/* MODAL */
+.modal-backdrop {
+  display: none; position: fixed; inset: 0; z-index: 300;
+  background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+  align-items: center; justify-content: center; padding: 16px;
+}
+.modal-backdrop.show { display: flex; }
+.modal {
+  background: var(--surface); border-radius: var(--radius);
+  border: 0.5px solid var(--border2); padding: 18px;
+  width: 100%; max-width: 360px; max-height: 90vh; overflow-y: auto;
+}
+.modal-title { font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 600; margin-bottom: 14px; }
+.modal label { display: block; font-size: 11px; color: var(--muted); margin: 10px 0 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+.modal input[type="text"], .modal select, .modal textarea {
+  width: 100%; background: var(--surface2); border: 0.5px solid var(--border2);
+  border-radius: var(--radius-sm); padding: 9px 10px;
+  color: var(--text); font-size: 13px; font-family: 'DM Sans', sans-serif;
+}
+.modal input:focus, .modal select:focus, .modal textarea:focus { outline: none; border-color: var(--accent); }
+.modal-actions { display: flex; gap: 8px; margin-top: 18px; justify-content: flex-end; }
+.btn { border: 0.5px solid var(--border2); background: var(--surface2); color: var(--text); padding: 8px 14px; border-radius: 20px; font-size: 12px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: white; }
+.btn-danger { color: var(--danger); border-color: var(--danger); }
+
+.settings-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 0.5px solid var(--border); }
+.settings-row:last-of-type { border-bottom: none; }
+.settings-row .info { font-size: 13px; color: var(--text); }
+.settings-row .info span { display: block; font-size: 11px; color: var(--muted); margin-top: 2px; }
+.toggle {
+  width: 38px; height: 22px; background: var(--surface2); border-radius: 12px;
+  border: 0.5px solid var(--border2); position: relative; cursor: pointer;
+  transition: background 0.2s;
+}
+.toggle::after {
+  content: ''; position: absolute; top: 2px; left: 2px;
+  width: 16px; height: 16px; border-radius: 50%; background: var(--muted);
+  transition: all 0.2s;
+}
+.toggle.on { background: var(--accent); border-color: var(--accent); }
+.toggle.on::after { left: 18px; background: white; }
+.note { font-size: 10px; color: var(--muted); line-height: 1.5; margin-top: 8px; }
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--surface); border: 0.5px solid var(--accent);
+  border-radius: 20px; padding: 8px 16px; font-size: 12px; color: var(--text);
+  z-index: 400; opacity: 0; transition: all 0.25s; pointer-events: none;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
@@ -148,10 +268,14 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 <div class="app-header">
   <div class="header-top">
     <div class="app-title">Mi Agenda ⚡</div>
-    <div class="week-nav">
-      <button class="nav-btn" onclick="changeWeek(-1)">←</button>
-      <span class="week-label" id="week-label"></span>
-      <button class="nav-btn" onclick="changeWeek(1)">→</button>
+    <div class="header-actions">
+      <div class="week-nav">
+        <button class="nav-btn" onclick="changeWeek(-1)">←</button>
+        <span class="week-label" id="week-label"></span>
+        <button class="nav-btn" onclick="changeWeek(1)">→</button>
+      </div>
+      <button class="icon-btn" id="edit-toggle" title="Modo edición" onclick="toggleEdit()">✎</button>
+      <button class="icon-btn" title="Ajustes" onclick="openSettings()">⚙</button>
     </div>
   </div>
   <div class="stats-row">
@@ -162,6 +286,8 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
   </div>
   <div class="progress-track"><div class="progress-fill" id="global-bar" style="width:0%"></div></div>
 </div>
+
+<div class="edit-banner">Modo edición — toca un bloque o tarea para editar · usa × para eliminar</div>
 
 <div class="legend">
   <span class="leg" style="background:var(--work);color:var(--work-acc)">Trabajo</span>
@@ -174,7 +300,8 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 <div class="days-scroll" id="days-scroll"></div>
 
 <div class="reset-wrap">
-  <button class="reset-btn" onclick="resetWeek()">Reiniciar semana</button>
+  <button class="reset-btn" onclick="resetWeek()">Reiniciar checks de la semana</button>
+  <button class="reset-btn" onclick="exportWeek()">Exportar semana</button>
 </div>
 
 <div class="install-banner" id="install-banner">
@@ -183,52 +310,132 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
   <button class="install-close" onclick="closeBanner()">×</button>
 </div>
 
+<!-- MODAL: BLOCK -->
+<div class="modal-backdrop" id="modal-block">
+  <div class="modal">
+    <div class="modal-title" id="modal-block-title">Editar bloque</div>
+    <label>Etiqueta</label>
+    <input type="text" id="mb-label" placeholder="Ej: Trabajo">
+    <label>Horario</label>
+    <input type="text" id="mb-time" placeholder="Ej: 9:00 AM – 7:00 PM">
+    <label>Tipo</label>
+    <select id="mb-type">
+      <option value="b-work">Trabajo (azul)</option>
+      <option value="b-gym">Gym (verde)</option>
+      <option value="b-study">Estudio (morado)</option>
+      <option value="b-meal">Meal prep (naranja)</option>
+      <option value="b-free">Libre (lima)</option>
+      <option value="b-rest">Descanso (gris)</option>
+    </select>
+    <label>Hora de aviso (opcional, formato 24h HH:MM)</label>
+    <input type="text" id="mb-notify" placeholder="Ej: 09:00 — déjalo vacío para no avisar">
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-block')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveBlock()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: TASK -->
+<div class="modal-backdrop" id="modal-task">
+  <div class="modal">
+    <div class="modal-title" id="modal-task-title">Editar tarea</div>
+    <label>Texto de la tarea</label>
+    <input type="text" id="mt-label" placeholder="Ej: Estudia 30 min">
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-task')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveTask()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: SETTINGS -->
+<div class="modal-backdrop" id="modal-settings">
+  <div class="modal">
+    <div class="modal-title">Ajustes</div>
+    <div class="settings-row">
+      <div class="info">Recordatorios push<span>Avisa al inicio de cada bloque (con la app abierta)</span></div>
+      <div class="toggle" id="t-notif" onclick="toggleNotif()"></div>
+    </div>
+    <div class="settings-row">
+      <div class="info">Modo edición<span>Activa para añadir, modificar o eliminar bloques y tareas</span></div>
+      <div class="toggle" id="t-edit" onclick="toggleEdit()"></div>
+    </div>
+    <div class="settings-row">
+      <div class="info">Restaurar agenda original<span>Vuelve a la configuración inicial (no borra checks ni logros)</span></div>
+      <button class="btn btn-danger" onclick="restoreDefaults()">Restaurar</button>
+    </div>
+    <div class="note">
+      Nota: Los recordatorios funcionan mientras la PWA está abierta o en segundo plano reciente. Para avisos con la app cerrada hace falta un servidor push (no disponible en GitHub Pages estático).
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="closeModal('modal-settings')">Listo</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: EXPORT -->
+<div class="modal-backdrop" id="modal-export">
+  <div class="modal">
+    <div class="modal-title">Exportar semana</div>
+    <label>Resumen (puedes copiarlo)</label>
+    <textarea id="export-text" rows="14" readonly></textarea>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-export')">Cerrar</button>
+      <button class="btn" onclick="downloadJSON()">Descargar JSON</button>
+      <button class="btn btn-primary" onclick="copyExport()">Copiar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
 <script>
 const DAYS = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
 const DAYS_FULL = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
 
-const DAY_CONFIG = [
+const DEFAULT_DAY_CONFIG = [
   { type:'long', blocks:[
-    {cls:'b-work',label:'Trabajo',time:'9:00 AM – 7:00 PM'},
-    {cls:'b-gym',label:'Gym',time:'7:00 – 9:30 PM'},
-    {cls:'b-study',label:'Estudio',time:'9:30 – 10:30 PM'},
+    {cls:'b-work',label:'Trabajo',time:'9:00 AM – 7:00 PM',notify:'09:00'},
+    {cls:'b-gym',label:'Gym',time:'7:00 – 9:30 PM',notify:'19:00'},
+    {cls:'b-study',label:'Estudio',time:'9:30 – 10:30 PM',notify:'21:30'},
   ], tasks:['habito_cel','habito_plan','study30','finanza_dia'] },
   { type:'long', blocks:[
-    {cls:'b-work',label:'Trabajo',time:'9:00 AM – 7:00 PM'},
-    {cls:'b-gym',label:'Gym',time:'7:00 – 9:30 PM'},
-    {cls:'b-study',label:'Estudio',time:'9:30 – 10:30 PM'},
+    {cls:'b-work',label:'Trabajo',time:'9:00 AM – 7:00 PM',notify:'09:00'},
+    {cls:'b-gym',label:'Gym',time:'7:00 – 9:30 PM',notify:'19:00'},
+    {cls:'b-study',label:'Estudio',time:'9:30 – 10:30 PM',notify:'21:30'},
   ], tasks:['habito_cel','habito_plan','study30','finanza_dia'] },
   { type:'rest', blocks:[
-    {cls:'b-meal',label:'Meal prep (1ª mitad)',time:'9:00 – 11:00 AM'},
-    {cls:'b-study',label:'Estudio profundo',time:'11:30 AM – 1:30 PM'},
-    {cls:'b-gym',label:'Gym',time:'4:00 – 6:00 PM'},
-    {cls:'b-free',label:'Libre / descanso',time:'6:00 PM en adelante'},
+    {cls:'b-meal',label:'Meal prep (1ª mitad)',time:'9:00 – 11:00 AM',notify:'09:00'},
+    {cls:'b-study',label:'Estudio profundo',time:'11:30 AM – 1:30 PM',notify:'11:30'},
+    {cls:'b-gym',label:'Gym',time:'4:00 – 6:00 PM',notify:'16:00'},
+    {cls:'b-free',label:'Libre / descanso',time:'6:00 PM en adelante',notify:''},
   ], tasks:['meal_prep','study90','python_prac','habito_cel','habito_plan','finanza_dia'] },
   { type:'long', blocks:[
-    {cls:'b-work',label:'Trabajo',time:'9:00 AM – 7:00 PM'},
-    {cls:'b-gym',label:'Gym',time:'7:00 – 9:30 PM'},
-    {cls:'b-study',label:'Estudio',time:'9:30 – 10:30 PM'},
+    {cls:'b-work',label:'Trabajo',time:'9:00 AM – 7:00 PM',notify:'09:00'},
+    {cls:'b-gym',label:'Gym',time:'7:00 – 9:30 PM',notify:'19:00'},
+    {cls:'b-study',label:'Estudio',time:'9:30 – 10:30 PM',notify:'21:30'},
   ], tasks:['habito_cel','habito_plan','study30','finanza_dia'] },
   { type:'short', blocks:[
-    {cls:'b-work',label:'Trabajo',time:'9:00 AM – 6:00 PM'},
-    {cls:'b-gym',label:'Gym',time:'6:00 – 8:00 PM'},
-    {cls:'b-study',label:'Estudio',time:'8:00 – 9:00 PM'},
-    {cls:'b-free',label:'Libre',time:'9:00 – 10:30 PM'},
+    {cls:'b-work',label:'Trabajo',time:'9:00 AM – 6:00 PM',notify:'09:00'},
+    {cls:'b-gym',label:'Gym',time:'6:00 – 8:00 PM',notify:'18:00'},
+    {cls:'b-study',label:'Estudio',time:'8:00 – 9:00 PM',notify:'20:00'},
+    {cls:'b-free',label:'Libre',time:'9:00 – 10:30 PM',notify:''},
   ], tasks:['habito_cel','habito_plan','study45','finanza_dia','cv_update'] },
   { type:'short', blocks:[
-    {cls:'b-work',label:'Trabajo',time:'9:00 AM – 6:00 PM'},
-    {cls:'b-study',label:'Estudio',time:'6:30 – 7:30 PM'},
-    {cls:'b-free',label:'Libre / descanso activo',time:'7:30 PM en adelante'},
+    {cls:'b-work',label:'Trabajo',time:'9:00 AM – 6:00 PM',notify:'09:00'},
+    {cls:'b-study',label:'Estudio',time:'6:30 – 7:30 PM',notify:'18:30'},
+    {cls:'b-free',label:'Libre / descanso activo',time:'7:30 PM en adelante',notify:''},
   ], tasks:['habito_cel','habito_plan','study45','finanza_dia'] },
   { type:'rest', blocks:[
-    {cls:'b-meal',label:'Meal prep (2ª mitad)',time:'9:00 – 11:00 AM'},
-    {cls:'b-gym',label:'Gym',time:'11:30 AM – 1:30 PM'},
-    {cls:'b-study',label:'Estudio / revisión',time:'2:30 – 4:00 PM'},
-    {cls:'b-free',label:'Revisión semanal + descanso',time:'4:00 PM en adelante'},
+    {cls:'b-meal',label:'Meal prep (2ª mitad)',time:'9:00 – 11:00 AM',notify:'09:00'},
+    {cls:'b-gym',label:'Gym',time:'11:30 AM – 1:30 PM',notify:'11:30'},
+    {cls:'b-study',label:'Estudio / revisión',time:'2:30 – 4:00 PM',notify:'14:30'},
+    {cls:'b-free',label:'Revisión semanal + descanso',time:'4:00 PM en adelante',notify:''},
   ], tasks:['meal_prep','study90','review_week','finanza_sem','habito_cel','habito_plan'] },
 ];
 
-const TASK_DEF = {
+const DEFAULT_TASK_DEF = {
   habito_cel:   'Sin cel en primera hora del día',
   habito_plan:  'Planea tu día (5 min)',
   study30:      'Estudia 30 min — repaso / ejercicios',
@@ -242,9 +449,22 @@ const TASK_DEF = {
   meal_prep:    'Meal prep completado ✓',
 };
 
+// ── State (persistent) ──────────────────────────────────────────
 let weekOffset = 0;
-let checks = {};
+let checks = {};                          // { dateKey__taskId: bool }
+let dayConfig = clone(DEFAULT_DAY_CONFIG); // editable copy
+let taskDef = { ...DEFAULT_TASK_DEF };    // editable copy
+let logros = {};                          // { dateKey: 'texto' }
+let notifEnabled = false;
+let notifFired = {};                       // { dateKey__time: true } — dedup per session
 
+// ── Helpers ─────────────────────────────────────────────────────
+function clone(x) { return JSON.parse(JSON.stringify(x)); }
+function $(id) { return document.getElementById(id); }
+function toast(msg) {
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1800);
+}
 function getWeekDates(o) {
   const now = new Date(), day = now.getDay();
   const mon = new Date(now);
@@ -252,25 +472,61 @@ function getWeekDates(o) {
   return Array.from({length:7}, (_, i) => { const d = new Date(mon); d.setDate(mon.getDate()+i); return d; });
 }
 function dateKey(d) { return d.toISOString().slice(0,10); }
+function dayIdx(d) { return d.getDay() === 0 ? 6 : d.getDay() - 1; }
 
+// ── Persistence ────────────────────────────────────────────────
+const LS = {
+  checks: 'erick_agenda_pwa',
+  config: 'erick_agenda_config',
+  taskdef: 'erick_agenda_taskdef',
+  logros: 'erick_agenda_logros',
+  notif: 'erick_agenda_notif',
+};
+function save() {
+  try {
+    localStorage.setItem(LS.checks, JSON.stringify(checks));
+    localStorage.setItem(LS.config, JSON.stringify(dayConfig));
+    localStorage.setItem(LS.taskdef, JSON.stringify(taskDef));
+    localStorage.setItem(LS.logros, JSON.stringify(logros));
+    localStorage.setItem(LS.notif, JSON.stringify(notifEnabled));
+  } catch(e) {}
+}
+function load() {
+  try {
+    const c = localStorage.getItem(LS.checks); if(c) checks = JSON.parse(c);
+    const cfg = localStorage.getItem(LS.config);
+    if (cfg) {
+      const parsed = JSON.parse(cfg);
+      if (Array.isArray(parsed) && parsed.length === 7 && parsed.every(d => d && Array.isArray(d.blocks) && Array.isArray(d.tasks))) {
+        dayConfig = parsed;
+      }
+    }
+    const td = localStorage.getItem(LS.taskdef); if(td) taskDef = { ...DEFAULT_TASK_DEF, ...JSON.parse(td) };
+    const lg = localStorage.getItem(LS.logros); if(lg) logros = JSON.parse(lg);
+    const n = localStorage.getItem(LS.notif); if(n) notifEnabled = JSON.parse(n);
+  } catch(e) {}
+}
+
+// ── Render ─────────────────────────────────────────────────────
 function render() {
   const dates = getWeekDates(weekOffset);
   const todayStr = dateKey(new Date());
   const fmt = d => `${d.getDate()}/${d.getMonth()+1}`;
-  document.getElementById('week-label').textContent = `${fmt(dates[0])} – ${fmt(dates[6])}`;
+  $('week-label').textContent = `${fmt(dates[0])} – ${fmt(dates[6])}`;
 
-  const scroll = document.getElementById('days-scroll');
+  const scroll = $('days-scroll');
   scroll.innerHTML = '';
   let total = 0, done = 0;
 
   dates.forEach((date, idx) => {
     const dk = dateKey(date);
-    const cfg = DAY_CONFIG[idx];
+    const cfg = dayConfig[idx];
     const isToday = dk === todayStr;
 
     const card = document.createElement('div');
     card.className = 'day-card' + (isToday ? ' today' : '') + (cfg.type === 'rest' ? ' rest-day' : '');
 
+    // Head
     const head = document.createElement('div');
     head.className = 'day-head';
     head.innerHTML = `
@@ -278,38 +534,73 @@ function render() {
         <div class="day-name${isToday ? ' today' : ''}">${DAYS[idx]}</div>
         <div class="day-date-num">${date.getDate()}</div>
       </div>
-      ${isToday ? '<div class="today-dot"></div>' : ''}
+      <div style="display:flex;align-items:center;gap:6px">
+        <button class="day-reset" onclick="resetDay(${idx})">↺</button>
+        ${isToday ? '<div class="today-dot"></div>' : ''}
+      </div>
     `;
     card.appendChild(head);
 
-    cfg.blocks.forEach(b => {
+    // Blocks
+    cfg.blocks.forEach((b, bIdx) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'block-wrap';
       const bl = document.createElement('div');
       bl.className = `block ${b.cls}`;
-      bl.innerHTML = `<div class="block-label">${b.label}</div><div class="block-time">${b.time}</div>`;
-      card.appendChild(bl);
+      bl.innerHTML = `<div class="block-label">${escapeHtml(b.label)}</div><div class="block-time">${escapeHtml(b.time)}${b.notify ? ' · 🔔 '+b.notify : ''}</div>`;
+      bl.addEventListener('click', () => {
+        if (document.body.classList.contains('edit-mode')) editBlock(idx, bIdx);
+      });
+      const del = document.createElement('button');
+      del.className = 'block-del'; del.textContent = '×';
+      del.addEventListener('click', e => { e.stopPropagation(); deleteBlock(idx, bIdx); });
+      wrap.appendChild(bl); wrap.appendChild(del);
+      card.appendChild(wrap);
     });
 
+    // Add block btn
+    const addB = document.createElement('button');
+    addB.className = 'add-btn'; addB.textContent = '+ bloque';
+    addB.onclick = () => addBlock(idx);
+    card.appendChild(addB);
+
+    // Tasks
     const ts = document.createElement('div');
     ts.className = 'tasks-section';
     let dayDone = 0;
 
-    cfg.tasks.forEach(tid => {
+    cfg.tasks.forEach((tid, tIdx) => {
       const key = `${dk}__${tid}`;
       const checked = !!checks[key];
       total++; if(checked){done++;dayDone++;}
 
       const row = document.createElement('div');
       row.className = 'task-row';
+      const label = taskDef[tid] || tid;
       row.innerHTML = `
-        <div class="task-check${checked ? ' checked' : ''}" data-key="${key}"></div>
-        <div class="task-text${checked ? ' done' : ''}">${TASK_DEF[tid]}</div>
+        <div class="task-check${checked ? ' checked' : ''}"></div>
+        <div class="task-text${checked ? ' done' : ''}">${escapeHtml(label)}</div>
+        <button class="task-del" data-stop>×</button>
       `;
-      row.addEventListener('click', () => {
-        checks[key] = !checks[key];
-        save(); render();
+      row.addEventListener('click', e => {
+        if (e.target.closest('[data-stop]')) return;
+        if (document.body.classList.contains('edit-mode')) {
+          editTask(idx, tIdx);
+        } else {
+          checks[key] = !checks[key]; save(); render();
+        }
+      });
+      row.querySelector('.task-del').addEventListener('click', e => {
+        e.stopPropagation(); deleteTask(idx, tIdx);
       });
       ts.appendChild(row);
     });
+
+    // Add task btn
+    const addT = document.createElement('button');
+    addT.className = 'add-btn'; addT.textContent = '+ tarea';
+    addT.onclick = () => addTask(idx);
+    ts.appendChild(addT);
 
     const dp = document.createElement('div');
     dp.className = 'day-progress';
@@ -317,6 +608,23 @@ function render() {
     dp.innerHTML = `<div class="day-progress-fill" style="width:${pct}%"></div>`;
     ts.appendChild(dp);
     card.appendChild(ts);
+
+    // Logro section
+    const lg = document.createElement('div');
+    lg.className = 'logro-section';
+    const lgVal = logros[dk] || '';
+    lg.innerHTML = `
+      <div class="logro-label"><span>Logro del día</span>${lgVal ? '<span class="logro-saved">✓ guardado</span>' : ''}</div>
+      <textarea class="logro-input" placeholder="¿Qué hiciste bien hoy? (evidencia para tu carpeta)"></textarea>
+    `;
+    const ta = lg.querySelector('textarea');
+    ta.value = lgVal;
+    ta.addEventListener('blur', () => {
+      const v = ta.value.trim();
+      if (v) logros[dk] = v; else delete logros[dk];
+      save(); render();
+    });
+    card.appendChild(lg);
     scroll.appendChild(card);
 
     if (isToday) {
@@ -324,12 +632,16 @@ function render() {
     }
   });
 
-  document.getElementById('s-done').textContent = done;
-  document.getElementById('s-pend').textContent = total - done;
+  $('s-done').textContent = done;
+  $('s-pend').textContent = total - done;
   const pct = total ? Math.round(done/total*100) : 0;
-  document.getElementById('s-pct').textContent = pct + '%';
-  document.getElementById('global-bar').style.width = pct + '%';
-  document.getElementById('s-streak').textContent = calcStreak() + 'd';
+  $('s-pct').textContent = pct + '%';
+  $('global-bar').style.width = pct + '%';
+  $('s-streak').textContent = calcStreak() + 'd';
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
 function calcStreak() {
@@ -338,34 +650,266 @@ function calcStreak() {
   for (let i = 0; i < 60; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() - i);
-    const idx = d.getDay() === 0 ? 6 : d.getDay() - 1;
+    const idx = dayIdx(d);
     const dk = dateKey(d);
-    if (DAY_CONFIG[idx].tasks.some(tid => checks[`${dk}__${tid}`])) s++;
+    if (dayConfig[idx].tasks.some(tid => checks[`${dk}__${tid}`])) s++;
     else if (i > 0) break;
   }
   return s;
 }
 
-function save() { try { localStorage.setItem('erick_agenda_pwa', JSON.stringify(checks)); } catch(e){} }
-function load() { try { const s = localStorage.getItem('erick_agenda_pwa'); if(s) checks = JSON.parse(s); } catch(e){} }
+// ── Week navigation ─────────────────────────────────────────────
 function changeWeek(d) { weekOffset += d; render(); }
 function resetWeek() {
   if (!confirm('¿Reiniciar checks de esta semana?')) return;
   getWeekDates(weekOffset).forEach((date, idx) => {
     const dk = dateKey(date);
-    DAY_CONFIG[idx].tasks.forEach(tid => { delete checks[`${dk}__${tid}`]; });
+    dayConfig[idx].tasks.forEach(tid => { delete checks[`${dk}__${tid}`]; });
   });
-  save(); render();
+  save(); render(); toast('Semana reiniciada');
 }
 
-// PWA install
+// ── Edit mode ──────────────────────────────────────────────────
+function toggleEdit() {
+  document.body.classList.toggle('edit-mode');
+  const on = document.body.classList.contains('edit-mode');
+  $('edit-toggle').classList.toggle('active', on);
+  $('t-edit').classList.toggle('on', on);
+}
+
+// ── Block editing ──────────────────────────────────────────────
+let editingBlock = null; // { dayIdx, blockIdx }
+function addBlock(di) {
+  editingBlock = { dayIdx: di, blockIdx: -1 };
+  $('modal-block-title').textContent = 'Nuevo bloque · ' + DAYS_FULL[di];
+  $('mb-label').value = ''; $('mb-time').value = ''; $('mb-type').value = 'b-work'; $('mb-notify').value = '';
+  openModal('modal-block');
+}
+function editBlock(di, bi) {
+  editingBlock = { dayIdx: di, blockIdx: bi };
+  const b = dayConfig[di].blocks[bi];
+  $('modal-block-title').textContent = 'Editar bloque · ' + DAYS_FULL[di];
+  $('mb-label').value = b.label; $('mb-time').value = b.time;
+  $('mb-type').value = b.cls; $('mb-notify').value = b.notify || '';
+  openModal('modal-block');
+}
+function saveBlock() {
+  const label = $('mb-label').value.trim(); const time = $('mb-time').value.trim();
+  if (!label) { toast('Falta etiqueta'); return; }
+  const block = { label, time, cls: $('mb-type').value, notify: $('mb-notify').value.trim() };
+  const { dayIdx: di, blockIdx: bi } = editingBlock;
+  if (bi === -1) dayConfig[di].blocks.push(block);
+  else dayConfig[di].blocks[bi] = block;
+  save(); closeModal('modal-block'); render(); scheduleNotifs(); toast('Bloque guardado');
+}
+function deleteBlock(di, bi) {
+  if (!confirm('¿Eliminar este bloque?')) return;
+  dayConfig[di].blocks.splice(bi, 1);
+  save(); render(); scheduleNotifs();
+}
+
+// ── Task editing ──────────────────────────────────────────────
+let editingTask = null; // { dayIdx, taskIdx }
+function addTask(di) {
+  editingTask = { dayIdx: di, taskIdx: -1 };
+  $('modal-task-title').textContent = 'Nueva tarea · ' + DAYS_FULL[di];
+  $('mt-label').value = '';
+  openModal('modal-task');
+}
+function editTask(di, ti) {
+  editingTask = { dayIdx: di, taskIdx: ti };
+  const tid = dayConfig[di].tasks[ti];
+  $('modal-task-title').textContent = 'Editar tarea · ' + DAYS_FULL[di];
+  $('mt-label').value = taskDef[tid] || '';
+  openModal('modal-task');
+}
+function saveTask() {
+  const label = $('mt-label').value.trim();
+  if (!label) { toast('Falta texto'); return; }
+  const { dayIdx: di, taskIdx: ti } = editingTask;
+  if (ti === -1) {
+    const newId = 'custom_' + Date.now();
+    taskDef[newId] = label;
+    dayConfig[di].tasks.push(newId);
+  } else {
+    const tid = dayConfig[di].tasks[ti];
+    taskDef[tid] = label;
+  }
+  save(); closeModal('modal-task'); render(); toast('Tarea guardada');
+}
+function deleteTask(di, ti) {
+  if (!confirm('¿Eliminar esta tarea de este día?')) return;
+  dayConfig[di].tasks.splice(ti, 1);
+  save(); render();
+}
+function resetDay(di) {
+  if (!confirm(`¿Restaurar ${DAYS_FULL[di]} a la configuración original? (no afecta tus checks ni logros)`)) return;
+  dayConfig[di] = clone(DEFAULT_DAY_CONFIG[di]);
+  save(); render(); scheduleNotifs(); toast(DAYS_FULL[di] + ' restaurado');
+}
+function restoreDefaults() {
+  if (!confirm('Esto vuelve toda la agenda a la configuración original. ¿Continuar?')) return;
+  dayConfig = clone(DEFAULT_DAY_CONFIG);
+  taskDef = { ...DEFAULT_TASK_DEF };
+  save(); render(); scheduleNotifs(); closeModal('modal-settings'); toast('Agenda restaurada');
+}
+
+// ── Modal helpers ─────────────────────────────────────────────
+function openModal(id) { $(id).classList.add('show'); }
+function closeModal(id) { $(id).classList.remove('show'); }
+function openSettings() {
+  $('t-notif').classList.toggle('on', notifEnabled && Notification.permission === 'granted');
+  $('t-edit').classList.toggle('on', document.body.classList.contains('edit-mode'));
+  openModal('modal-settings');
+}
+
+// ── Notifications ─────────────────────────────────────────────
+async function toggleNotif() {
+  if (!('Notification' in window)) { toast('Tu navegador no soporta notificaciones'); return; }
+  if (notifEnabled) {
+    notifEnabled = false;
+    $('t-notif').classList.remove('on');
+    save(); toast('Notificaciones desactivadas');
+    return;
+  }
+  if (Notification.permission === 'denied') {
+    toast('Permiso bloqueado en el navegador'); return;
+  }
+  let perm = Notification.permission;
+  if (perm !== 'granted') perm = await Notification.requestPermission();
+  if (perm === 'granted') {
+    notifEnabled = true;
+    $('t-notif').classList.add('on');
+    save(); scheduleNotifs(); toast('Recordatorios activados ✓');
+    // Test ping
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      reg.showNotification('Mi Agenda ⚡', { body: 'Recordatorios activados', icon: 'icons/icon-192.png', tag:'test' });
+    } catch(e) {}
+  } else {
+    toast('Permiso denegado');
+  }
+}
+
+let notifTimers = [];
+function clearNotifs() { notifTimers.forEach(t => clearTimeout(t)); notifTimers = []; }
+
+function scheduleNotifs() {
+  clearNotifs();
+  if (!notifEnabled || Notification.permission !== 'granted') return;
+  const now = new Date();
+  // Schedule for the next 24h: today and tomorrow if cross midnight
+  for (let dayOffset = 0; dayOffset < 2; dayOffset++) {
+    const d = new Date(now); d.setDate(now.getDate() + dayOffset);
+    const idx = dayIdx(d);
+    const dk = dateKey(d);
+    const cfg = dayConfig[idx];
+    cfg.blocks.forEach(b => {
+      if (!b.notify || !/^\d{1,2}:\d{2}$/.test(b.notify)) return;
+      const [hh, mm] = b.notify.split(':').map(Number);
+      const fire = new Date(d); fire.setHours(hh, mm, 0, 0);
+      const ms = fire - now;
+      if (ms <= 0 || ms > 24 * 3600 * 1000) return;
+      const dedupKey = `${dk}__${b.notify}__${b.label}`;
+      if (notifFired[dedupKey]) return;
+      const t = setTimeout(() => fireNotif(b, dedupKey), ms);
+      notifTimers.push(t);
+    });
+  }
+}
+async function fireNotif(b, dedupKey) {
+  notifFired[dedupKey] = true;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    reg.showNotification(`⚡ ${b.label}`, {
+      body: b.time,
+      icon: 'icons/icon-192.png',
+      badge: 'icons/icon-192.png',
+      tag: dedupKey,
+      requireInteraction: false,
+    });
+  } catch(e) {
+    try { new Notification(`⚡ ${b.label}`, { body: b.time }); } catch(_) {}
+  }
+  // Reschedule for tomorrow
+  scheduleNotifs();
+}
+
+// ── Export ────────────────────────────────────────────────────
+function buildExport() {
+  const dates = getWeekDates(weekOffset);
+  const fmt = d => `${d.getDate()}/${d.getMonth()+1}`;
+  const semana = `${fmt(dates[0])} – ${fmt(dates[6])}`;
+  const dias = dates.map((date, idx) => {
+    const dk = dateKey(date);
+    const cfg = dayConfig[idx];
+    const tareas = cfg.tasks.map(tid => ({
+      texto: taskDef[tid] || tid,
+      hecha: !!checks[`${dk}__${tid}`],
+    }));
+    const hechas = tareas.filter(t => t.hecha).length;
+    return {
+      fecha: dk,
+      dia: DAYS_FULL[idx],
+      adherencia: `${hechas}/${tareas.length}`,
+      logro: logros[dk] || '',
+      bloques: cfg.blocks.map(b => ({ label: b.label, time: b.time, tipo: b.cls.replace('b-','') })),
+      tareas,
+    };
+  });
+  const totalHechas = dias.reduce((s,d)=>s+d.tareas.filter(t=>t.hecha).length,0);
+  const totalTareas = dias.reduce((s,d)=>s+d.tareas.length,0);
+  return { semana, adherencia_total: `${totalHechas}/${totalTareas} (${totalTareas?Math.round(totalHechas/totalTareas*100):0}%)`, dias };
+}
+function buildExportText(data) {
+  let txt = `📋 MI AGENDA — Semana ${data.semana}\n`;
+  txt += `Adherencia total: ${data.adherencia_total}\n`;
+  txt += `${'─'.repeat(40)}\n\n`;
+  data.dias.forEach(d => {
+    txt += `▸ ${d.dia.toUpperCase()} ${d.fecha}  · ${d.adherencia}\n`;
+    d.bloques.forEach(b => txt += `   • ${b.label} (${b.time})\n`);
+    d.tareas.forEach(t => txt += `   ${t.hecha?'✓':'○'} ${t.texto}\n`);
+    if (d.logro) txt += `   ★ Logro: ${d.logro}\n`;
+    txt += `\n`;
+  });
+  return txt;
+}
+function exportWeek() {
+  const data = buildExport();
+  $('export-text').value = buildExportText(data);
+  $('export-text').dataset.json = JSON.stringify(data, null, 2);
+  openModal('modal-export');
+}
+async function copyExport() {
+  try {
+    await navigator.clipboard.writeText($('export-text').value);
+    toast('Copiado al portapapeles ✓');
+  } catch(e) {
+    $('export-text').select(); document.execCommand('copy');
+    toast('Copiado');
+  }
+}
+function downloadJSON() {
+  const data = $('export-text').dataset.json;
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const sem = buildExport().semana.replace(/\s/g,'').replace(/\//g,'-');
+  a.href = url; a.download = `agenda_${sem}.json`; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast('JSON descargado');
+}
+
+// ── PWA install ───────────────────────────────────────────────
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
   deferredPrompt = e;
-  document.getElementById('install-banner').classList.add('show');
+  if (!localStorage.getItem('erick_install_dismissed')) {
+    $('install-banner').classList.add('show');
+  }
 });
-document.getElementById('install-btn').addEventListener('click', async () => {
+$('install-btn').addEventListener('click', async () => {
   if (deferredPrompt) {
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
@@ -373,15 +917,24 @@ document.getElementById('install-btn').addEventListener('click', async () => {
     deferredPrompt = null;
   }
 });
-function closeBanner() { document.getElementById('install-banner').classList.remove('show'); }
+function closeBanner() {
+  $('install-banner').classList.remove('show');
+  localStorage.setItem('erick_install_dismissed', '1');
+}
 
-// Service Worker
+// ── Service worker ────────────────────────────────────────────
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }
 
+// ── Boot ──────────────────────────────────────────────────────
 load();
 render();
+if (notifEnabled && 'Notification' in window && Notification.permission === 'granted') {
+  scheduleNotifs();
+}
+// Re-evaluate notifications at midnight
+setInterval(() => scheduleNotifs(), 30 * 60 * 1000);
 </script>
 </body>
 </html>
